@@ -60,41 +60,50 @@ void setup()
 }
  
 uint8_t  oldBrightness;
+int counter=0;
 void loop()
 {
   // irsend.sendNEC(0xF7B04F,32); 
-   espalexa.loop();
-  //  Serial.println("loop");
-   delay(1);
+  espalexa.loop();
+  Serial.println("count");
+  counter++;
+  if (counter>800){
+    counter=0;
+    irsend.sendNEC(0xFF807F,32); 
+    Serial.println("Send");
+  }
+  delay(1);
 }
 
 //our callback functions
 void firstLightChanged(uint8_t brightness, u32_t rgb) {
   Serial.print("Device 1 changed to ");
   
-  //do what you need to do here
-
-  //EXAMPLE
+  //Alexa Wavelight on
   if (brightness==255) {
     Serial.print("ON, brightness ");
     Serial.println(brightness);
     irsend.sendNEC(0xFF807F,32); 
-    Serial.println("Wavelight On");
+    Serial.println("Wavelight Toogle");
   }
+  //Alexa Wavelight off
   if (brightness==0) {
     Serial.print("OFF, brightness ");
     Serial.println(brightness);
     irsend.sendNEC(0xFF807F,32); 
     Serial.println("Wavelight Off");
   }
+  //Alexa Grün
   else if (rgb==65280) {
     irsend.sendNEC(0xF740BF,32); 
     Serial.println("Wavelight Grün");
   }
+  //Alexa Rot
   else if (rgb==16711680) {
     irsend.sendNEC(0xF720DF,32); 
     Serial.println("Wavelight Red");
   }
+    //Alexa Blau
   else if (rgb==255) {
     irsend.sendNEC(0xF7609F,32); 
     Serial.println("Wavelight Blau");
@@ -111,10 +120,8 @@ void firstLightChanged(uint8_t brightness, u32_t rgb) {
   Serial.println(rgb);
   Serial.printf("HEX: %x", rgb);
 
-  if (rgb == 255){
-    Serial.println("rot");
-  }
 }
+
 
 void secondLightChanged(uint8_t brightness) {
   //do what you need to do here
