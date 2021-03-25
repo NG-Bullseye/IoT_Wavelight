@@ -1,5 +1,5 @@
 /*
- * This is a basic example on how to use Espalexa and its device declaration methods.
+ * Test
  */ 
 #ifdef ARDUINO_ARCH_ESP32
 #include <WiFi.h>
