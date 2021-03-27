@@ -15,8 +15,6 @@ boolean connectWifi();
 
 //callback functions
 void firstLightChanged(uint8_t brightness, u32_t rgb);
-void secondLightChanged(uint8_t brightness);
-void thirdLightChanged(uint8_t brightness);
 
 // Change this!!
 const char* ssid = "Free Wifi";
@@ -43,7 +41,6 @@ void setup()
     // espalexa.addDevice("omega", firstLightChanged, EspalexaDeviceType::onoff); //simplest definition, default state off
     espalexa.addDevice("Wavelight", firstLightChanged); //color device
     // espalexa.addDevice("Light 2", secondLightChanged, 255); //third parameter is beginning state (here fully on)
-    
     // device3 = new EspalexaDevice("Light 3", thirdLightChanged); //you can also create the Device objects yourself like here
     // espalexa.addDevice(device3); //and then add them
     // device3->setValue(128); //this allows you to e.g. update their state value at any time!
@@ -61,16 +58,24 @@ void setup()
  
 uint8_t  oldBrightness;
 int counter=0;
+
+int sollZustand=0;
+int istZustand=0;
+boolean istAn=0;
+boolean sollAn=0;
+
 void loop()
 {
-  // irsend.sendNEC(0xF7B04F,32); 
   espalexa.loop();
   Serial.println("count");
   counter++;
-  if (counter>800){
+  if (counter>300){
     counter=0;
-    irsend.sendNEC(0xFF807F,32); 
-    Serial.println("Send");
+    if(sollZustand!=istZustand){
+      irsend.sendNEC(0xFF40BF,32); 
+      istZustand++;
+      if(istZustand==8)istZustand=0;
+    }
   }
   delay(1);
 }
@@ -81,32 +86,36 @@ void firstLightChanged(uint8_t brightness, u32_t rgb) {
   
   //Alexa Wavelight on
   if (brightness==255) {
-    Serial.print("ON, brightness ");
-    Serial.println(brightness);
-    irsend.sendNEC(0xFF807F,32); 
-    Serial.println("Wavelight Toogle");
+    if(!istAn){
+      irsend.sendNEC(0xFF807F,32); 
+      Serial.println("Wavelight Toogle");
+      istAn=true;
+    }
   }
   //Alexa Wavelight off
   if (brightness==0) {
-    Serial.print("OFF, brightness ");
-    Serial.println(brightness);
-    irsend.sendNEC(0xFF807F,32); 
-    Serial.println("Wavelight Off");
+    if(istAn){
+      irsend.sendNEC(0xFF807F,32); 
+      Serial.println("Wavelight Toogle");
+      istAn=false;
+    }
   }
-  //Alexa Grün
-  else if (rgb==65280) {
-    irsend.sendNEC(0xF740BF,32); 
-    Serial.println("Wavelight Grün");
-  }
-  //Alexa Rot
-  else if (rgb==16711680) {
-    irsend.sendNEC(0xF720DF,32); 
-    Serial.println("Wavelight Red");
-  }
-    //Alexa Blau
-  else if (rgb==255) {
-    irsend.sendNEC(0xF7609F,32); 
-    Serial.println("Wavelight Blau");
+  switch(rgb){
+    case 65280://Alexa Grün
+      sollZustand=4;//Lichtmodus Grün
+      break;
+
+    case 16711680://Alexa Rot
+      sollZustand=2;//Lichtmodus Rot
+      break;
+
+    case 255://Alexa Blau
+      sollZustand=3;//Lichtmodus Blau
+      break;
+
+    case 16777215://Alexa Schwarz
+      sollZustand=6; //Lichtmodus Party
+      break;
   }
 
   Serial.print("Brightness: ");
@@ -120,15 +129,6 @@ void firstLightChanged(uint8_t brightness, u32_t rgb) {
   Serial.println(rgb);
   Serial.printf("HEX: %x", rgb);
 
-}
-
-
-void secondLightChanged(uint8_t brightness) {
-  //do what you need to do here
-}
-
-void thirdLightChanged(uint8_t brightness) {
-  //do what you need to do here
 }
 
 // connect to wifi – returns true if successful or false if not
