@@ -10,7 +10,7 @@
  */
 /*
  * @title Espalexa library
- * @version 2.6.0
+ * @version 2.7.0
  * @author Christian Schwinne
  * @license MIT
  * @contributors d-999
@@ -49,7 +49,7 @@
 #include <WiFiUdp.h>
 
 #ifdef ESPALEXA_DEBUG
- #pragma message "Espalexa 2.6.0 debug mode"
+ #pragma message "Espalexa 2.7.0 debug mode"
  #define EA_DEBUG(x)  Serial.print (x)
  #define EA_DEBUGLN(x) Serial.println (x)
 #else
@@ -119,22 +119,10 @@ private:
   
   void encodeLightId(uint8_t idx, char* out)
   {
-    //Unique id must be 12 character len
-    //use the last 10 characters of the MAC followed by the device id in hex value
-    //uniqueId: aabbccddeeii
-
     uint8_t mac[6];
     WiFi.macAddress(mac);
 
-    //shift the mac address to the left (discard first byte)
-    for (uint8_t i = 0; i < 5; i++) {
-      mac[i] = mac[i+1];
-    }
-    mac[5] = idx;
-
-    for (uint8_t i = 0; i < 6; i++) {
-      sprintf(out + i*2, "%.2x", mac[i]);
-    }
+    sprintf_P(out, PSTR("%02X:%02X:%02X:%02X:%02X:%02X:00:11-%02X"), mac[0],mac[1],mac[2],mac[3],mac[4],mac[5], idx);
   }
 
   // construct 'globally unique' Json dict key fitting into signed int
@@ -153,7 +141,7 @@ private:
   //device JSON string: color+temperature device emulates LCT015, dimmable device LWB010, (TODO: on/off Plug 01, color temperature device LWT010, color device LST001)
   void deviceJsonString(EspalexaDevice* dev, char* buf)
   {
-    char buf_lightid[13];
+    char buf_lightid[27];
     encodeLightId(dev->getId() + 1, buf_lightid);
     
     char buf_col[80] = "";
@@ -173,7 +161,7 @@ private:
     
     sprintf_P(buf, PSTR("{\"state\":{\"on\":%s,\"bri\":%u%s%s,\"alert\":\"none%s\",\"mode\":\"homeautomation\",\"reachable\":true},"
                    "\"type\":\"%s\",\"name\":\"%s\",\"modelid\":\"%s\",\"manufacturername\":\"Philips\",\"productname\":\"E%u"
-                   "\",\"uniqueid\":\"%s\",\"swversion\":\"espalexa-2.6.0\"}")
+                   "\",\"uniqueid\":\"%s\",\"swversion\":\"espalexa-2.7.0\"}")
                    
     , (dev->getValue())?"true":"false", dev->getLastValue()-1, buf_col, buf_ct, buf_cm, typeString(dev->getType()),
     dev->getName().c_str(), modelidString(dev->getType()), static_cast<uint8_t>(dev->getType()), buf_lightid);
@@ -198,7 +186,7 @@ private:
     }
     res += "\r\nFree Heap: " + (String)ESP.getFreeHeap();
     res += "\r\nUptime: " + (String)millis();
-    res += "\r\n\r\nEspalexa library v2.6.0 by Christian Schwinne 2021";
+    res += "\r\n\r\nEspalexa library v2.7.0 by Christian Schwinne 2021";
     server->send(200, "text/plain", res);
   }
   #endif
