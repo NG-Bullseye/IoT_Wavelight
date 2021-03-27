@@ -61,8 +61,8 @@ int counter=0;
 
 int sollZustand=0;
 int istZustand=0;
-boolean istAn=0;
-boolean sollAn=0;
+boolean istAn=false;
+boolean sollAn=false;
 
 void loop()
 {
@@ -94,28 +94,28 @@ void firstLightChanged(uint8_t brightness, u32_t rgb) {
   }
   //Alexa Wavelight off
   if (brightness==0) {
-    if(istAn){
       irsend.sendNEC(0xFF807F,32); 
       Serial.println("Wavelight Toogle");
       istAn=false;
-    }
   }
   switch(rgb){
     case 65280://Alexa Grün
       sollZustand=4;//Lichtmodus Grün
       break;
-
     case 16711680://Alexa Rot
       sollZustand=2;//Lichtmodus Rot
       break;
-
     case 255://Alexa Blau
       sollZustand=3;//Lichtmodus Blau
       break;
-
     case 16777215://Alexa Schwarz
       sollZustand=6; //Lichtmodus Party
       break;
+    case 16760972://Alexa Weiß
+      if(istAn) {
+         irsend.sendNEC(0xFF807F,32); //Lichtmodus Party
+         istAn=false;
+      }
   }
 
   Serial.print("Brightness: ");
