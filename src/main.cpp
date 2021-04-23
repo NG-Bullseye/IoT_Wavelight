@@ -85,20 +85,32 @@ void firstLightChanged(uint8_t brightness, u32_t rgb) {
   Serial.print("Device 1 changed to ");
   
   //Alexa Wavelight on
-  if (brightness==255) {
-    if(!istAn){
-      irsend.sendNEC(0xFF807F,32); 
-      Serial.println("Wavelight Toogle");
-      istAn=true;
-    }
+  if (brightness==255&&!istAn) {
+    irsend.sendNEC(0xFF807F,32); 
+    Serial.println("Wavelight Toogle");
+    istAn=true;
+    istZustand=0;
   }
+  if (brightness==255&&istAn) {
+    Serial.println("Wavelight Sync");
+    istAn=true;
+    istZustand=0;
+  }
+
   //Alexa Wavelight off
-  if (brightness==0) {
+  if (brightness==0&&istAn) {
       irsend.sendNEC(0xFF807F,32); 
       Serial.println("Wavelight Toogle");
       istAn=false;
+      istZustand=0;
   }
-  switch(rgb){
+  if(brightness==0&&!istAn){
+      istAn=false;
+      istZustand=0;
+  }
+
+  else{
+    switch(rgb){
     case 65280://Alexa Grün
       sollZustand=4;//Lichtmodus Grün
       break;
@@ -112,10 +124,9 @@ void firstLightChanged(uint8_t brightness, u32_t rgb) {
       sollZustand=6; //Lichtmodus Party
       break;
     case 16760972://Alexa Weiß
-      if(istAn) {
-         irsend.sendNEC(0xFF807F,32); //Lichtmodus Party
-         istAn=false;
-      }
+      sollZustand=0;
+  }
+  
   }
 
   Serial.print("Brightness: ");
